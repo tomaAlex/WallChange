@@ -1,10 +1,22 @@
 {
-  "name": "wallpaper_changer",
+  "name": "wallchange",
   "version": "1.0.0",
   "description": "Change wallpaper based on the local hour",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomaAlex/WallChange.git"
+  },
   "author": "Toma Alexandru-Eugen",
-  "license": "ISC"
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tomaAlex/WallChange/issues"
+  },
+  "homepage": "https://github.com/tomaAlex/WallChange#readme",
+  "dependencies": {
+    "wallpaper": "^4.4.1"
+  }
+}
