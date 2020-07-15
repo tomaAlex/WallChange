@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/tomaAlex/WallChange#readme",
   "dependencies": {
+    "gm": "^1.23.1",
+    "pngjs": "^5.0.0",
+    "q": "^1.5.1",
     "wallpaper": "^4.4.1"
   }
 }

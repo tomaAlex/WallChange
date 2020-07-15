@@ -2,6 +2,7 @@ const wallpaper = require('wallpaper');
 const readline = require('readline');
 const { time } = require('console');
 const { exec } = require('child_process');
+const childProcess = require('child_process');
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -18,12 +19,52 @@ if (fs.existsSync(checkPoint_path))
     });
 const { rejects } = require('assert');
 const { resolve, dirname } = require('path');
+//const { return } = require('q');
 
 let imgPath = '/';
 let date, current_hour, current_minute, current_second, photoNumber, imgFolder, readData = false, imgTime = new Array(), timeString, noError = true, errMsg, current_wallpaper = -1, extensions = new Array(), current_os = process.platform;
 let commandString = '';
+let finishedClassification = false;
+let canLog = false;
+let waitingForResponse = true;
+
+var twirlTimer = (() => {
+    var P = ["\\", "|", "/", "-"];
+    var x = 0;
+    return setInterval(() => {
+        if(!waitingForResponse) {
+            process.stdout.write("\r" + P[x++]);
+            x &= 3;
+        } 
+    }, 250);
+  })();
+
+function runScript(scriptPath, callback) {
+
+    // keep track of whether callback has been invoked to prevent multiple invocations
+    var invoked = false;
+
+    var process = childProcess.fork(scriptPath, [imgFolder]);
+
+    // listen for errors as they may prevent the exit event from firing
+    process.on('error', err => {
+        if (invoked) return;
+        invoked = true;
+        callback(err);
+    });
+
+    // execute the callback once the process has finished running
+    process.on('exit', code => {
+        if (invoked) return;
+        invoked = true;
+        var err = code === 0 ? null : new Error('exit code ' + code);
+        callback(err);
+    });
+
+}
 
 function readData_() {
+    canLog = true;
     rl.question("Number of photos you want to change in a day: ", n => {
         rl.question("Path to the images folder: ", folderPath => {
             if (fs.existsSync(folderPath)) {
@@ -47,6 +88,7 @@ function readData_() {
                     if(datesAreValid()) {
                         saveData();
                         createService();
+                        waitingForResponse = false;
                     }
                     rl.close();
                 });
@@ -129,16 +171,44 @@ function loadData() {
             });
         }
         if(i == 3) {
+            let mustChange = false;
             timeString = line;
+            readData = true;
             for(let i = 0; i < photoNumber; i++) imgTime.push(new Date());
             datesAreValid();
             rl.question("\nDo you want to reset the saved data? (y/n): ", r => {
-                if(r.toLocaleLowerCase() == 'yes' || r.toLocaleLowerCase() == 'y') readData_();
+                if(r.toLocaleLowerCase() == 'yes' || r.toLocaleLowerCase() == 'y') {
+                    mustChange = true;
+                    readData = false;
+                    imgFolder = null;
+                    readData_();
+                    promiseImgFolder()
+                    .then(() => {
+                        // begin classifying images as soon as folder path has been given
+                        console.log('began classyfing images...');
+                        runScript(__dirname +  '/darkImageClassifier.js', err => {
+                            if (err) throw err;
+                            finishedClassification = true;
+                            console.log('finished classifying images!');
+                            console.log('may your eyes burn no more :)');
+                            process.exit();
+                        });
+                    })
+                    .catch(err => {
+                        throw err;
+                    });
+                }
+                else if(r.toLocaleLowerCase() == 'no' || r.toLocaleLowerCase() == 'n') {
+                    console.log('well, then, have a nice day..:)');
+                    process.exit();
+                }
             });
             setTimeout(() => {
-                console.log('y'); // this is unfinished!!
-                readData = true;
-            }, 1000);
+                if(!mustChange) {
+                    console.log('n');
+                    canLog = true;
+                }
+            }, 300000);
         }
         i++;
     });
@@ -214,12 +284,20 @@ function promiseExecBashCommand() {
     });
 }
 
+function promiseImgFolder() {
+    return new Promise((resolve, reject) => {
+        setInterval(() => {
+            if(imgFolder) resolve();
+        }, 100);
+    });
+}
+
 function execBashCommand(resolve, reject) {
-    console.log('executing `' + commandString + '`...');
+    //console.log('executing `' + commandString + '`...');
     exec(commandString, (err, stdout, stderr) => {
         if (err) reject(err);
         else {
-            console.log('finished executing `' + commandString + '`!');
+            //console.log('finished executing `' + commandString + '`!');
             // the *entire* stdout and stderr (buffered)
             //console.log(`stdout: ${stdout}`);
             //console.log(`stderr: ${stderr}`);
@@ -228,8 +306,31 @@ function execBashCommand(resolve, reject) {
     });
 }
 
-if(!runBefore()) readData_();
-else loadData(); // it has already been run before, data must be reloaded from log file
+if(!runBefore()) {
+    // data hasn't been read before or has to be read again
+    readData_();
+    if(!finishedClassification) {
+        promiseImgFolder()
+        .then(() => {
+            // begin classifying images as soon as folder path has been given
+            console.log('began classyfing images...');
+            runScript(__dirname +  '/darkImageClassifier.js', err => {
+                if (err) throw err;
+                finishedClassification = true;
+                console.log('finished classifying images!');
+                console.log('may your eyes burn no more :)');
+                process.exit();
+            });
+        })
+        .catch(err => {
+            throw err;
+        });
+    }
+}
+else {
+    finishedClassification = true;
+    loadData(); // it has already been run before, data must be reloaded from log file
+}
 
 function runBefore() {
     if (fs.existsSync(checkPoint_path)) return true; // file exists, so it was ran before
@@ -259,7 +360,7 @@ let interval = setInterval(() => {
     if(noError) {
         if(readData) {
             let t = imageTurn();
-            if(t != current_wallpaper) changeWallpaper(t);
+            if(t != current_wallpaper && finishedClassification) changeWallpaper(t);
         }
     }
     else throw errMsg;
@@ -273,5 +374,5 @@ function changeWallpaper(p) {
         throw e;
     }
     current_wallpaper = p;
-    console.log('changed the wallpaper with image number ' + p);
+    if(canLog) console.log('changed the wallpaper with image number ' + p);
 }
