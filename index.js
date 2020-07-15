@@ -375,4 +375,5 @@ function changeWallpaper(p) {
     }
     current_wallpaper = p;
     if(canLog) console.log('changed the wallpaper with image number ' + p);
+    console.log('changed the wallpaper with image number ' + p);
 }
