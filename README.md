@@ -12,7 +12,7 @@ Go somewhere in your computer where to store this project, open up a terminal �
 # Installing dependencies 💉
 You need to have `npm` installed. Check whether or not you have `npm` installed with `check npm` ✅. If not, then install it ❗If you are coming from a Debian distro, then you could simply `sudo apt install npm` 🥴. After that, just `npm i` and wait for all the dependencies to get installed. 
 # Running this code 🏃
-As mentioned, you have to run the script 📜 with su privileges, as it needs them, in order to create the `wallChange.service` service, which runs this script automatically at boot time 🤯. Therefore: `sudo node index.js` 🧚‍♂️. Also, make sure you have the `nodejs` package installed on your system 😂. If not, install it 🤣. On Debian, it's really simple: `sudo apt install nodejs`. 🤟
+As mentioned, you have to run the script 📜 with su privileges, as it needs them, in order to create the `wallChange.service` service, which runs this script automatically at boot time 🤯. Therefore: `sudo node index.js`. Also, make sure you have the `nodejs` package installed on your system 😂. If not, install it. On Debian, it's really simple: `sudo apt install nodejs`. 🤟
 # Do what the script says to 🙆
 1. Mention the number of images 🔢 which are to be found in the given folder 📂
 2. Paste the absolute path of the mentioned directory 😁
