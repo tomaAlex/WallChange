@@ -21,3 +21,5 @@ As mentioned, you have to run the script 📜 with su privileges, as it needs th
 After executing the script, you don't have to worry anymore about executing it ever again 😊, as it created a service, which makes it to run automatically at boot time 🤯. Therefore, your chosen wallpapers would change everyday as you told it the first time 💃
 # Can I ever change the images which are set on my wallpaper? 😱
 Of course you can! 🙃 You just have to run the `index.js` file again with su privileges and choose the other settings you want 😉
+# Want to buy me a coffe? ☕
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.me/tomaAlex2608)
